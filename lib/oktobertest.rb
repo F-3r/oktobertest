@@ -7,9 +7,11 @@ module Oktobertest
   def self.display_errors
     puts
     errors.each do |error|
-      backtrace_location = error.backtrace_locations.detect { |l| l.base_label == '<main>' || l.base_label == '<top (required)>' }
-      print error.kind_of?(TestSkipped) ? "\nskip" : "\nerror: #{error.message}"
-      print "\nfile: #{backtrace_location.path}\nline: #{backtrace_location.lineno}\n"
+      file, line, *_ = error.backtrace.detect { |l| l =~ /<main>|<top (required)>/ }.split(":")
+      print error.kind_of?(TestSkipped) ? "\nskip" : "\nerror: #{error.message.gsub("\n", " --- ")}"
+      print "\nfile: #{file}}\nline: #{line}\n"
+      puts
+      puts backtrace.join("\n") if ENV["SHOW_BACKTRACE"]
     end
   end
 
