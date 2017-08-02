@@ -11,7 +11,7 @@ module Oktobertest
       print error.kind_of?(TestSkipped) ? "\nskip" : "\nerror: #{error.message.gsub("\n", " --- ")}"
       print "\nfile: #{file}}\nline: #{line}\n"
       puts
-      puts backtrace.join("\n") if ENV["SHOW_BACKTRACE"]
+      puts error.backtrace.join("\n") if ENV["SHOW_BACKTRACE"]
     end
   end
 
@@ -113,6 +113,28 @@ module Oktobertest
 
     def run?
       !ENV['T'] || ENV['T'] == @name
+    end
+  end
+
+  class Runner
+    attr_reader :tests, :pattern
+
+    def initialize(pattern)
+      pattern ||= "./test/**/*_test.rb"
+
+      @tests = Dir[pattern]
+    end
+
+    def run
+      tests.each do |test|
+        begin
+          require test
+        rescue StandardError => error
+          print 'E'
+        ensure
+          Oktobertest.errors << error unless error.nil?
+        end
+      end
     end
   end
 end
